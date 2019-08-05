@@ -38,8 +38,8 @@ for index, row in dfBercos.iterrows():
 
 dfManobras = pd.DataFrame(listManobras) 
 dfManobras = dfManobras.sort_values("DataManobra")
-
-dataAnterior = datetime.strptime('01/05/2019 00:00', '%d/%m/%Y %H:%M')
+#Data de inicio de calculo da taxa de ocupação
+dataAnterior = datetime.strptime('01/01/2019 00:00', '%d/%m/%Y %H:%M')
 qtdNavios = 0
 listTaxaOcupacao = []
 #Percorro todas as manobras para calcular a qtd de minutos por qtd de navios e por dia
@@ -50,12 +50,10 @@ for index, row in dfManobras.iterrows():
 	else:		
 		datAtual = row["DataManobra"]		
 		diferenca = datAtual-dataAnterior
-		#Caso o dia seja o mesmo apenas subtraio uma data da outra  e salvo os minutos
+		#Caso o dia seja o mesmo apenas subtraio uma data da outra e salvo os minutos
 		if(datAtual.day == dataAnterior.day):		
 			minutos = subtrairDatas(datAtual, dataAnterior).getMinutos()
 			listTaxaOcupacao.append({"dataManobra": dataAnterior, "qtdNavios": qtdNavios, "tempo": minutos})
-			print("1 - Anterior: " + dataAnterior.strftime("%d/%m/%Y, %H:%M:%S")  + 
-				" Atual: "+ datAtual.strftime("%d/%m/%Y, %H:%M:%S") + "Tempo: " + str(minutos))
 			dataAnterior = datAtual
 			qtdNavios += row["qtdNavios"]			
 		else:			
@@ -66,23 +64,13 @@ for index, row in dfManobras.iterrows():
 				datCont = datCont.replace(hour=0, minute=0, second=0, microsecond=0)
 				minutos = subtrairDatas(datCont, dataAnterior).getMinutos()
 				listTaxaOcupacao.append({"dataManobra": dataAnterior, "qtdNavios": qtdNavios, "tempo": minutos})
-				print("2 - Anterior: " + dataAnterior.strftime("%d/%m/%Y, %H:%M:%S")  + 
-				" Atual: "+ datCont.strftime("%d/%m/%Y, %H:%M:%S") + "Tempo: " + str(minutos))
 				dataAnterior = datCont					
 			#Apos atualizar os dias anteriores gero o calculo do dia atual
 			datAtual = row["DataManobra"]
 			minutos = subtrairDatas(datAtual, dataAnterior).getMinutos()
 			listTaxaOcupacao.append({"dataManobra": dataAnterior, "qtdNavios": qtdNavios, "tempo": minutos})
-			print("3 - Anterior: " + dataAnterior.strftime("%d/%m/%Y, %H:%M:%S")  + 
-				" Atual: "+ datAtual.strftime("%d/%m/%Y, %H:%M:%S") + "Tempo: " + str(minutos))
 			dataAnterior = datAtual
 			qtdNavios += row["qtdNavios"]
 
 dfTaxaOcupacao = pd.DataFrame(listTaxaOcupacao) 
 dfTaxaOcupacao = dfTaxaOcupacao.sort_values("dataManobra")
-#print (dfTaxaOcupacao)
-
-excel = pd.ExcelWriter('teste.xlsx', engine='xlsxwriter')
-dfTaxaOcupacao.to_excel(excel, sheet_name='Taxa de Ocupacao')
-dfManobras.to_excel(excel, sheet_name='Manobras')
-excel.save()
